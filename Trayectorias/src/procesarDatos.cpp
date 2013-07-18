@@ -8,6 +8,7 @@
 using namespace mrpt::gui;
 
 
+int obtenerNumeroLineas(char *filename);
 
 
 int main( int argc, const char* argv[] )
@@ -16,14 +17,26 @@ int main( int argc, const char* argv[] )
 	int v_inicio[]={44,1142,2521};
 	int v_fin[]={213,1336,2735};
 
-	int inicio,fin;
+	// Indices con el inicio de los archivos de sónar
+	int sonar_inicio[]={1,37,73};
 
+	int inicio,fin,sonar_i,n_medidas;
+
+	// Indice para almacenar perfiles con trayectorias
 	int indice=0;
 
 	char nombre[100];
 	char nombre_perfil[100];
+	char nombre_sonar[100];
+
+	FILE *perfil;
 
 	Detector detector;
+
+	// Vectores de piernas y cluster
+	vector<Cluster> conjuntos;
+	vector<Cluster> piernas;
+
 
 
 	// Cargar modelo SVM
@@ -38,144 +51,128 @@ int main( int argc, const char* argv[] )
 	for(int i=0; i < 3 ; i++){
 
 		// Para cada conjunto de datos de una persona concreta
+		// Tomo el inicio y leo del archivo de sónar el número de medidas
 		inicio=v_inicio[i];
-		fin=v_fin[i];
-
-		sprintf(nombre_perfil,"/home/jplata/Eclipse/MedidasPiernas/17Julio/laser%i.dat",i);
-
-		// Fichero para escribir posciones de la persona
-
-		for(int j=inicio; j <= fin; j++){
-
-			// Itero en ese conjunto de datos, me encontraré con la misma trayectoria 6 veces
+		sonar_i=sonar_inicio[i];
+		fin=inicio;
 
 
+		// Mientras no sobrepase el fin leo archivos de sónar
+		// y almacenos tantos puntos como lineas tiene el fichero
 
 
-			sprintf(nombre,"/home/jplata/Eclipse/MedidasPiernas/17Julio/Datos/laser%i.dat",i);
-			//cout << "Fichero:  " << nombre << endl;
+		while(fin <= v_fin[i]){
+			sprintf(nombre_sonar,"/home/jplata/Eclipse/MedidasPiernas/17Julio/Datos/sonar%i.dat",sonar_i);
 
-			// Comprobar existencia del archivo
-			FILE* file=fopen(nombre,"r");
+			n_medidas=obtenerNumeroLineas(nombre_sonar);
 
-			if(!file){
-				cout << "¡¡¡¡Archivo " << nombre << " no encontrado!!! Continuar con el siguiente" << endl;
-				continue;
-			}
+			sprintf(nombre_perfil,"/home/jplata/Eclipse/MedidasPiernas/17Julio/T1/t1_%i.dat",indice);
 
+			// Fichero para escribir posciones de la persona
+			perfil=fopen(nombre_perfil,"w");
 
-			detector.abrirFichero(nombre,false);
+			for(int j=inicio; j <= fin; j++){
 
-
-			// Medidas
-			puntos=detector.getPuntos();
-
-			gettimeofday(&t_ini,NULL);
-			Eigen::MatrixXf rectas=detector.eliminarRectas(30,181);
-			gettimeofday(&t_fin,NULL);
-			cout << "Tiempo eliminar Rectas: " << timeval_diff(&t_fin,&t_ini) << endl;
-			cout << rectas << endl;
-
-			tiempos.push_back(timeval_diff(&t_fin,&t_ini));
-
-			gettimeofday(&t_ini,NULL);
-
-			vector<Cluster> piernas=detector.clusterizar(0.1,3);;
-
-			mx.clear();
-			my.clear();
-
-
-			for(unsigned int i=0;i<puntos->size();i++){
-				mx.push_back(puntos->at(i).x());
-				my.push_back(puntos->at(i).y());
-			}
-
-			medidasPlot.clear();
-			string fileName(nombre);
-			medidasPlot.setWindowTitle("Medidas - " + fileName.substr(fileName.find_last_of("/")+1));
-			medidasPlot.plot(mx,my,".b2");
-
-			for(int j=0;j < rectas.rows();j++){
-
-				Grafico::dibujarLinea(&medidasPlot,rectas(j,0),rectas(j,1),limites);
-
-			}
-
-
-			clusterPlot.clear();
-			clusterPlot.setWindowTitle("Cluster - " + fileName.substr(fileName.find_last_of("/")+1));
-			clusterPlot.hold_on();
-
-			piernasPlot.clear();
-			piernasPlot.setWindowTitle("Piernas - " + fileName.substr(fileName.find_last_of("/")+1));
-			piernasPlot.hold_on();
+				// Itero en ese conjunto de datos, me encontraré con la misma trayectoria 6 veces
 
 
 
-			// Obtengo puntos clusters
-			string formato[2];
-			formato[0]=".r2";
-			formato[1]=".b2";
+				sprintf(nombre,"/home/jplata/Eclipse/MedidasPiernas/17Julio/Datos/laser%i.dat",i);
+				//cout << "Fichero:  " << nombre << endl;
 
-			for(int j=0;j < piernas.size();j++){
+				// Comprobar existencia del archivo
+				FILE* file=fopen(nombre,"r");
+
+				if(!file){
+					cout << "¡¡¡¡Archivo " << nombre << " no encontrado!!! Continuar con el siguiente" << endl;
+					continue;
+				}
 
 
-				puntos=piernas[j].getPuntos();
+				detector.abrirFichero(nombre,false);
+
+
+				Eigen::MatrixXf rectas=detector.eliminarRectas(30,181);
+
+				conjuntos.clear();
+				piernas.clear();
+
+				conjuntos=detector.clusterizar(0.1,3);;
+
+
+				for(int j=0;j < conjuntos.size();j++){
+
+					// Determinar si es pierna o no
+					instancia[0].index=1;
+					instancia[1].index=2;
+					instancia[2].index=3;
+					instancia[3].index=-1;
+
+					instancia[0].value=conjuntos[j].getContorno();
+					instancia[1].value=conjuntos[j].getAncho();
+					instancia[2].value=conjuntos[j].getProfundidad();
+
+					target=svm_predict(model,instancia);
+
+					if(target==1){
+						// El clasificador SVM lo reconoce como pierna
+						// Lo agrego al vector de piernas
+						piernas.push_back(conjuntos[j]);
+					}
+				}
+
+				vector<CPose2D> personas=detector.buscarPersonas(piernas);
+				cout << "Personas detectadas: " << personas.size() << endl;
+
+				if(personas.size() > 1){
+					cout << "ATENCION: Detectadas más de 1 persona en vector de piernas!!!!" << endl;
+					continue;
+				}
+
+				if(personas.size() == 1){
+					// Solo se ha detectado una persona, es lo esperado
+					// Almaceno su posición en fichero
+					fprintf(perfil,"x:%0.3f,y:%0.3f\n",personas[0].x(),personas[0].y());
+
+
+				}
+
+
+
+				detector.printClusters(piernas);
 				px.clear();
 				py.clear();
-
-				for(unsigned int k=0;k<puntos->size();k++){
-					px.push_back(puntos->at(k).x());
-					py.push_back(puntos->at(k).y());
+				for(int k=0;k < personas.size(); k++){
+					px.push_back(personas[k].x());
+					py.push_back(personas[k].y());
 				}
-				clusterPlot.plot(px,py,formato[j%2]);
+				piernasPlot.plot(px,py,".c4");
 
-				// Determinar si es pierna o no
-				instancia[0].index=1;
-				instancia[1].index=2;
-				instancia[2].index=3;
-				instancia[3].index=-1;
+				medidasPlot.axis(-0.5,3,-3,3);
+				clusterPlot.axis(-0.5,3,-3,3);
+				piernasPlot.axis(-0.5,3,-3,3);
+				gettimeofday(&t_fin,NULL);
+				cout << "Tiempo resto proceso: " << timeval_diff(&t_fin,&t_ini) << endl;
 
-				instancia[0].value=piernas[j].getContorno();
-				instancia[1].value=piernas[j].getAncho();
-				instancia[2].value=piernas[j].getProfundidad();
+				cout << "Presione cualquier tecla para pasar a la siguiente muestra" << endl;
 
-				target=svm_predict(model,instancia);
+				mrpt::system::os::getch();
 
-				if(target==1){
-					// El clasificador SVM lo reconoce como pierna
-					piernasPlot.plot(px,py,formato[j%2]);
-				}
-				else{
-					// No es una pierna, lo elimino del vector
-					piernas.erase(piernas.begin()+j);
-					j--;
-				}
+
+
+
+
+
+
+
+
+
+
+
+
 
 			}
 
-			vector<CPose2D> personas=detector.buscarPersonas(piernas);
-			cout << "Personas detectadas: " << personas.size() << endl;
-
-			detector.printClusters(piernas);
-			px.clear();
-			py.clear();
-			for(int k=0;k < personas.size(); k++){
-				px.push_back(personas[k].x());
-				py.push_back(personas[k].y());
-			}
-			piernasPlot.plot(px,py,".c4");
-
-			medidasPlot.axis(-0.5,3,-3,3);
-			clusterPlot.axis(-0.5,3,-3,3);
-			piernasPlot.axis(-0.5,3,-3,3);
-			gettimeofday(&t_fin,NULL);
-			cout << "Tiempo resto proceso: " << timeval_diff(&t_fin,&t_ini) << endl;
-
-			cout << "Presione cualquier tecla para pasar a la siguiente muestra" << endl;
-
-			mrpt::system::os::getch();
 
 
 
@@ -191,6 +188,13 @@ int main( int argc, const char* argv[] )
 
 
 		}
+
+
+
+
+
+
+
 
 
 
@@ -375,4 +379,18 @@ int main( int argc, const char* argv[] )
 
 }
 
+
+int obtenerNumeroLineas(char *filename){
+
+	int number_of_lines = 0;
+	std::string line;
+	std::ifstream myfile(filename);
+
+	while (std::getline(myfile, line))
+	{
+		++number_of_lines;
+	}
+
+	return number_of_lines;
+}
 
