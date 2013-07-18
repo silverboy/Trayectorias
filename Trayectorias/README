@@ -1,0 +1,8 @@
+Este proyecto está pensado para procesar los datos tomados el 17 de Julio.
+
+Por un lado visualizaremos las trayectorias teóricas adquiridas.
+
+Por otro lado procesaremos las pruebas realizadas con varios individuos siguiendo esas trayectorias. Por cada trayectoria
+seguida nuestro objetivo es generar un fichero que contenga las posiciones x,y donde se encontraba la persona.
+
+Separaremos estos ficheros por trayectorias.
