@@ -1,4 +1,4 @@
-src/representar.d: ../src/representar.cpp \
+src/procesarDatos.d: ../src/procesarDatos.cpp ../include/Detector.h \
  /usr/include/mrpt/base/include/mrpt/poses/CPose2D.h \
  /usr/include/mrpt/base/include/mrpt/poses/CPose.h \
  /usr/include/mrpt/base/include/mrpt/poses/CPoseOrPoint.h \
@@ -236,7 +236,11 @@ src/representar.d: ../src/representar.cpp \
  /usr/include/mrpt/base/include/mrpt/math/CQuaternion.h \
  /usr/include/mrpt/base/include/mrpt/poses/CPoint3D.h \
  /usr/include/mrpt/base/include/mrpt/poses/CPoint.h \
- /usr/include/mrpt/base/include/mrpt/poses/CPose3D.h
+ /usr/include/mrpt/base/include/mrpt/poses/CPose3D.h \
+ /usr/include/mrpt/base/include/mrpt/utils/CConfigFile.h \
+ /usr/include/mrpt/base/include/mrpt/system/filesystem.h ../include/svm.h
+
+../include/Detector.h:
 
 /usr/include/mrpt/base/include/mrpt/poses/CPose2D.h:
 
@@ -713,3 +717,9 @@ src/representar.d: ../src/representar.cpp \
 /usr/include/mrpt/base/include/mrpt/poses/CPoint.h:
 
 /usr/include/mrpt/base/include/mrpt/poses/CPose3D.h:
+
+/usr/include/mrpt/base/include/mrpt/utils/CConfigFile.h:
+
+/usr/include/mrpt/base/include/mrpt/system/filesystem.h:
+
+../include/svm.h:

@@ -5,20 +5,17 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/Detector.cpp \
-../src/main.cpp \
-../src/representar.cpp \
+../src/procesarDatos.cpp \
 ../src/svm.cpp 
 
 OBJS += \
 ./src/Detector.o \
-./src/main.o \
-./src/representar.o \
+./src/procesarDatos.o \
 ./src/svm.o 
 
 CPP_DEPS += \
 ./src/Detector.d \
-./src/main.d \
-./src/representar.d \
+./src/procesarDatos.d \
 ./src/svm.d 
 
 
