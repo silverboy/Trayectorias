@@ -20,13 +20,13 @@ int obtenerNumeroLineas(char *filename);
 int main( int argc, const char* argv[] )
 {
 
-	int inicio_scan=44;
+	int inicio_scan=0;
 
 	// Indice de archivo de almacenamiento para cada trayectoria (6 en este caso)
 	// T7 se trata en caso aparte
-	int t_indices[]={0,0,0,0,0,0};
+	int t_indices[]={18,18,18,18,18,18,0};
 
-	int fin_scan,n_trayectoria,n_persona,n_posiciones(0);
+	int fin_scan,n_trayectoria,n_posiciones(0);
 
 	char nombre[100];
 	char nombre_perfil[100];
@@ -51,22 +51,37 @@ int main( int argc, const char* argv[] )
 	instancia=Malloc(struct svm_node,4);
 
 
-	for(int i=1; i <= 108 ; i++){
+	for(int i=0; i <= 55 ; i++){
 
-		// Para cada archivo de sonar
-		// Tomo el inicio y leo del archivo de sónar el número de medidas
-		sprintf(nombre_sonar,"/home/jplata/Eclipse/MedidasPiernas/17Julio/Datos/sonar%i.dat",i);
+		if(i < 10 || i > 45){
+			// T7
+			// Para cada archivo de sonar
+			// Tomo el inicio y leo del archivo de sónar el número de medidas
+			sprintf(nombre_sonar,"/home/jplata/Eclipse/MedidasPiernas/17Julio/Datos2/sonar%i.dat",i);
 
-		fin_scan=inicio_scan + obtenerNumeroLineas(nombre_sonar);
+			fin_scan=inicio_scan + obtenerNumeroLineas(nombre_sonar);
 
-		n_persona=ceil((i-1)/36);
-		n_trayectoria=ceil((i-n_persona*36-1)/6);
+			n_trayectoria=6;
 
-		cout << i << " " << n_persona << " " << n_trayectoria << endl;
+			// Nombre de archivo donde almacenar la trayectoria
+			sprintf(nombre_perfil,"/home/jplata/Eclipse/MedidasPiernas/17Julio/T%i/t%i_%i.dat",
+					n_trayectoria+1,n_trayectoria+1,t_indices[n_trayectoria]);
+		}
+		else{
 
-		// Nombre de archivo donde almacenar la trayectoria
-		sprintf(nombre_perfil,"/home/jplata/Eclipse/MedidasPiernas/17Julio/T%i/t%i_%i.dat",
-				n_trayectoria+1,n_trayectoria+1,t_indices[n_trayectoria]);
+			// Para cada archivo de sonar
+			// Tomo el inicio y leo del archivo de sónar el número de medidas
+			sprintf(nombre_sonar,"/home/jplata/Eclipse/MedidasPiernas/17Julio/Datos2/sonar%i.dat",i);
+
+			fin_scan=inicio_scan + obtenerNumeroLineas(nombre_sonar);
+
+			n_trayectoria=ceil((i-10)/6);
+
+			// Nombre de archivo donde almacenar la trayectoria
+			sprintf(nombre_perfil,"/home/jplata/Eclipse/MedidasPiernas/17Julio/T%i/t%i_%i.dat",
+					n_trayectoria+1,n_trayectoria+1,t_indices[n_trayectoria]);
+
+		}
 
 
 		// Fichero para escribir posciones de la persona
@@ -80,7 +95,7 @@ int main( int argc, const char* argv[] )
 			// Itero en ese conjunto de datos
 
 
-			sprintf(nombre,"/home/jplata/Eclipse/MedidasPiernas/17Julio/Datos/laser%i.dat",j);
+			sprintf(nombre,"/home/jplata/Eclipse/MedidasPiernas/17Julio/Datos2/laser%i.dat",j);
 
 
 			// Comprobar existencia del archivo
@@ -192,4 +207,6 @@ int obtenerNumeroLineas(char *filename){
 
 	return number_of_lines;
 }
+
+
 

@@ -5,17 +5,17 @@
 # Add inputs and outputs from these tool invocations to the build variables 
 CPP_SRCS += \
 ../src/Detector.cpp \
-../src/procesarDatos.cpp \
+../src/interpolar.cpp \
 ../src/svm.cpp 
 
 OBJS += \
 ./src/Detector.o \
-./src/procesarDatos.o \
+./src/interpolar.o \
 ./src/svm.o 
 
 CPP_DEPS += \
 ./src/Detector.d \
-./src/procesarDatos.d \
+./src/interpolar.d \
 ./src/svm.d 
 
 
